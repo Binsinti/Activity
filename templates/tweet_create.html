@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Feed</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f0f2f5; }
+        .tweet-card { transition: box-shadow .3s; }
+        .tweet-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+        .tweet-image { max-height: 400px; object-fit: cover; border-radius: .25rem; }
+    </style>
+</head>
+<body>
+    <main class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+
+                <!-- Error Display -->
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Tweet Creation Form Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h1 class="card-title h4">Post a Tweet</h1>
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                {{ form.content }}
+                            </div>
+                            <div class="mb-3">
+                                {{ form.image }}
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <button type="submit" class="btn btn-primary">Tweet</button>
+                                <small id="char-count" class="text-muted">280</small>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Recent Tweets Feed -->
+                <h2 class="h3 mb-3">Recent Tweets</h2>
+                {% if Tweet %}
+                    {% for tweet in Tweet %}
+                    <div class="card tweet-card mb-3">
+                        <div class="card-body">
+                            <p class="card-text">{{ tweet.content|linebreaksbr }}</p>
+                            {% if tweet.image %}
+                                <img src="{{ tweet.image.url }}" class="img-fluid tweet-image w-100" alt="Tweet image">
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-white border-top-0 text-end">
+                            <small class="text-muted">{{ tweet.created_at|date:"M d, Y, P" }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <p class="text-muted mb-0">No tweets yet. Be the first!</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const content_textarea = document.querySelector("textarea[name='content']");
+        const char_count_span = document.getElementById('char-count');
+        const max_chars = 280;
+
+        content_textarea.addEventListener('input', () => {
+            const remaining = max_chars - content_textarea.value.length;
+            char_count_span.textContent = remaining;
+            char_count_span.style.color = remaining < 20 ? (remaining < 0 ? 'red' : 'orange') : '#6c757d';
+        });
+    </script>
+</body>
+</html>
